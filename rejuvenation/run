@@ -1,0 +1,173 @@
+#!/bin/bash
+
+#Time method
+start_date=$(date +%s)
+reboot_date=0
+minutes=0
+
+#Control variables
+reboot_count=0
+server_down_start=0
+
+#reboot types
+force=0
+soft=0
+ssh=0
+
+#vm name
+vm_name="vmDebian"
+
+#checks if date A is greater than date B
+function is_date_greater() {
+  now=$(date +%s)
+  if [ "$now" -ge "$1" ]; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+#checks if $1 is a number
+function is_number() {
+  local re='^[0-9]+$'
+  if ! [[ $1 =~ $re ]]; then
+    return 1
+  fi
+  return 0
+}
+
+function print_usage() {
+  echo "script usage $(basename "$0")  [-t <integer> minutes] [-m <integer> mb] [-p (TODO)] [-f (forced reboot)] [-s (soft reboot)] [-ssh (ssh reboot)]" >&1
+}
+
+function reboot_machine() {
+  ((reboot_count++))
+  server_down_start=$(date +%s)
+
+
+  ./reboot_machine.sh $force $soft $ssh $vm_name
+
+  sleep 2
+}
+
+function time_method() {
+  result=$(is_date_greater $reboot_date)
+  if [ "$result" -eq 1 ]; then
+    reboot_date=$(date -d "($reboot_date) +$minutes mins" +%s)
+    reboot_machine
+  fi
+}
+
+if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
+ print_usage
+ exit 0
+else
+  while [[ $# -gt 0 ]]; do
+    opt="$1"
+    shift
+    current_arg="$1"
+    if [[ "$current_arg" =~ ^-{1,2}.* ]]; then
+      echo "WARNING: You may have left an argument blank. Double-check your command."
+      exit 1
+    fi
+    case "$opt" in
+    "-t" | "--time")
+      minutes=$1
+      reboot_date=$(date -d "($start_date) +$1 mins" +%s)
+      echo "Iniciando testes de rejuvenescimento | A MV irá reinciar a cada $minutes minutos"
+      shift
+      ;;
+    "-f" | "--force")
+      force=1
+      shift
+      ;;
+    "-s" | "--soft")
+      soft=1
+      shift
+      ;;
+    "-ssh" | "--ssh")
+      ssh=1
+      shift
+      ;;
+    "-n" | "--name")
+      vm_name="$1"
+      shift
+      ;;
+    "-h" | "--help")
+      print_usage
+      exit 0
+      ;;
+    *)
+      echo "ERROR: Invalid option: \"$opt\"" >&2
+      print_usage
+      exit 1
+      ;;
+    esac
+  done
+fi
+
+#if [[ "$APPLE" == "" || "$BANANA" == "" ]]; then
+#    echo "ERROR: Options -a and -b require arguments." >&2
+#    exit 1
+#fi
+
+function headers() {
+  mkdir -p logs
+  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxSVC.csv
+  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxHeadless.csv
+  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxXPCOMIPCD.csv
+  echo "usr;nice;sys;iowait;soft;date_time" >logs/monitoramento-cpu.csv
+  echo "used;date_time" >logs/monitoramento-disco.csv
+  echo "used;cached;buffer;swap-free;date_time" >logs/monitoramento-mem.csv
+  echo "num_zumbis;date_time" >logs/monitoramento-zumbis.csv
+  echo "server_down; period; seconds" >logs/server_status.csv
+}
+
+function verify_server_status() {
+  if [ "$server_down_start" -ne "0" ]; then
+    code=$(curl -w "%{http_code}" -o /dev/null -s "http://localhost:8080")
+    if [ "$code" -eq 200 ]; then
+      date_time=$(date +%d-%m-%Y-%H:%M:%S)
+      server_down_end=$(date +%s)
+      result="$((server_down_end - server_down_start))"
+      server_down_start=0
+
+      echo "$date_time; $reboot_count; $result" >>logs/server_status.csv
+      echo "Server is up again"
+    fi
+  fi
+}
+
+
+
+rebooted=$(vboxmanage list runningvms | grep "$vm_name")
+if [[ "$rebooted" == "" ]]; then
+  vboxmanage startvm "$vm_name" --type headless
+  echo "Turned on machine"
+else
+  echo "Machine is already on"
+fi
+
+headers
+
+./workload.sh "$vm_name" disks/disk 50 &
+
+stap -o logs/fragmentacao.txt memory_fragmentation/fragmentacao2b.stp &
+
+processos/monitoramento-VBoxXPCOMIPCD.sh &
+processos/monitoramento-VBoxHeadless.sh &
+processos/monitoramento-VBoxSVC.sh &
+
+./machine-resources.sh &
+
+while true; do
+  :
+
+  date_time=$(date +%d-%m-%Y-%H:%M:%S)
+
+  time_method
+
+  verify_server_status
+
+  sleep 1
+done
