@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # Universidade Federal Rural de Pernambuco - Unidade Acadêmica de Garanhuns
@@ -8,9 +8,7 @@
 ################################################################################
 
 ################################### CONFIG VARS
-count=1           # counter control
-DISKS_QUANTITY=$1 # number of disks to be created
-DISK_SIZE=$2      # disk size after created
+COUNT=1 # counter control
 
 ################################### START FUNCTIONS
 # create a new disks on virtual machine
@@ -21,10 +19,15 @@ DISK_SIZE=$2      # disk size after created
 # global variables:
 #   count
 CREATE_DISKS() {
-    while [ "$count" -lt "$DISKS_QUANTITY" ]; do
-        VBoxManage createmedium disk --filename disk$count.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
+    DISKS_QUANTITY=$1 # number of disks to be created
+    DISK_SIZE=$2      # disk size after created
+    
+    while [[ "$COUNT" -le "$DISKS_QUANTITY" ]]; do
+        VBoxManage createmedium disk --filename disk$COUNT.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
 
-        count=$(("$count" + 1))
+        COUNT=$((COUNT + 1))
     done
 }
 ################################### END FUNCTIONS
+
+CREATE_DISKS 5 10
