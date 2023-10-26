@@ -9,11 +9,21 @@ UUIDS_DISKS="$(vboxmanage list hdds | grep -w "UUID:" | grep -v "Parent UUID:" |
 ############################## END VARS CONFIG
 
 ############################## START FUNCTIONS
+# REMOVING_DISKS
+# description:
+#   deletes virtual hard disks from the virtual machine except disks in use
+#
+# config vars used:
+#   $UUIDS_DISKS
+#
+# virtualbox commands used:
+#   vboxmanage closemedium disk
 REMOVING_DISKS() {
     for uuid_disk in $UUIDS_DISKS; do
         echo -e "\n--->> Deleting disk with id: $uuid_disk \n"
         deleting_disk="$(vboxmanage closemedium disk "$uuid_disk" --delete 2>&1)"
 
+        # Error Handling
         if [[ "$deleting_disk" == *"error:"* ]]; then
             echo -e "Error: Failed to delete medium with UUID: $uuid_disk \n"
             echo -e "***\nDetails: \n$deleting_disk \n***"
