@@ -94,3 +94,8 @@ case $DISTRIBUTION_ID in
         ;;
 esac
 ######################################## END PRINCIPAL PROGRAM
+
+
+# retirar warning de kernel: https://man7.org/linux/man-pages/man7/warning::symbols.7stap.html
+# copie os binarios do /proc/kallsysms para /boot/System.map$(uname -r)
+# cp /proc/kallsyms /boot/System.map-$( uname -r )
