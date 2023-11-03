@@ -6,7 +6,7 @@
 # Author - Thayson Guedes ( 31/10/2023 )
 ################################################################################
 
-############################################################ START VARS CONFIG
+############################################################ START VARS CONFIG                                                                                
 COUNT=1                                                                                             # counter control
 UUIDS_DISKS="$(vboxmanage list hdds | grep -w "UUID:" | grep -v "Parent UUID:" | awk '{print $2}')" # get 'UUID' with 'id' and remove 'Parent UUID'
 ############################################################ END VARS CONFIG
@@ -25,14 +25,14 @@ CREATE_DISKS() {
     DISKS_QUANTITY=$1 # number of disks to be created
     DISK_SIZE=$2      # disk size after created
 
+    mkdir -p ../disks
+
     while [[ "$COUNT" -le "$DISKS_QUANTITY" ]]; do
-        VBoxManage createmedium disk --filename disk$COUNT.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
+        VBoxManage createmedium disk --filename ../disks/disk$COUNT.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
 
         COUNT=$((COUNT + 1))
     done
 }
-
-CREATE_DISKS 5 10
 
 # FUNCTION == REMOVING_DISKS
 # DESCRIPTION == deletes virtual hard disks from the virtual machine except disks in use
@@ -56,5 +56,4 @@ REMOVING_DISKS() {
         fi
     done
 }
-REMOVING_DISKS # using function
 ############################################################ END FUNCTIONS
