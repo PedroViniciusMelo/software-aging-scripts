@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 
-################################################################################
 # Universidade Federal Rural de Pernambuco - Unidade Acadêmica de Garanhuns
 # Uname Research Group
 # Author - Thayson Guedes ( 31/10/2023 )
-################################################################################
 
-############################################################ START VARS CONFIG                                                                                
-COUNT=1                                                                                             # counter control
-UUIDS_DISKS="$(vboxmanage list hdds | grep -w "UUID:" | grep -v "Parent UUID:" | awk '{print $2}')" # get 'UUID' with 'id' and remove 'Parent UUID'
-############################################################ END VARS CONFIG
+# GLOBAL VARIABLES
+COUNT=1                                                                           # counter control
+UUIDS_DISKS=$(vboxmanage list hdds | awk '/UUID:/ && !/Parent UUID:/ {print $2}') # get 'UUID' with 'id' and remove 'Parent UUID'
 
-############################################################ START FUNCTIONS
-# FUNCTION == CREATE_DISKS
-# DESCRIPTION == create a new disks on virtual machine
+# CREATE_DISKS
+# DESCRIPTION:
+#   create a new disks on virtual machine
 #
 # PARAMETERS:
 #   $1 = $DISKS_QUANTITY
@@ -30,12 +27,13 @@ CREATE_DISKS() {
     while [[ "$COUNT" -le "$DISKS_QUANTITY" ]]; do
         VBoxManage createmedium disk --filename ../disks/disk$COUNT.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
 
-        COUNT=$((COUNT + 1))
+        ((COUNT++))
     done
 }
 
-# FUNCTION == REMOVING_DISKS
-# DESCRIPTION == deletes virtual hard disks from the virtual machine except disks in use
+# REMOVING_DISKS
+# DESCRIPTION:
+#   deletes virtual hard disks from the virtual machine except disks in use
 #
 # GLOBAL VARIABLES:
 #   $UUIDS_DISKS
@@ -56,4 +54,3 @@ REMOVING_DISKS() {
         fi
     done
 }
-############################################################ END FUNCTIONS

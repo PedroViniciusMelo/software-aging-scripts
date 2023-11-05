@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
 
-# main script to call all others from the setup folder and
-# define initial and dependency settings
-
 ################################################# START IMPORTS
 source ./dependencies.sh
 source ./setupVm.sh
 source ./disk_management.sh
-################################################# END IMPORTS
 
-[[ "$EUID" -ne 0 ]] && echo "Run Script as Super Administrator ( need root )" && exit 1
+# CHECK_ROOT
+# DESCRIPTION:
+#   check if script is running as root
+CHECK_ROOT() {
+    if [[ "$EUID" -ne 0 ]]; then
+        echo "Run Script as Super Administrator ( need root )"
+        exit 1
+    fi
+}
 
-################################################# START MAIN_SETUP
+# MAIN_SETUP
+# DESCRIPTION:
+#   start
 MAIN_SETUP() {
-    read -r -p "Deseja verificar dependencias? ( y | n ) - Default=n: " escolha
+    CHECK_ROOT
 
-    if [[ "$escolha" == "y" ]]; then
-        echo "verificando dependencias"
+    read -r -p "Do you want to check dependencies? ( y | n ) - Default=n: " choise
+
+    if [[ "$choise" == "y" ]]; then
+        echo "checking dependencies"
 
         START_DEPENDENCIES && wait # ./dependencies.sh
     else
-        echo "nao ira verificar dependencias"
+        echo "will not check dependencies"
 
         ################################## START ./setupVm.sh
         CHECK_DEBIAN_IMAGE && wait
@@ -34,4 +42,3 @@ MAIN_SETUP() {
     fi
 }
 MAIN_SETUP
-################################################# END MAIN_SETUP
