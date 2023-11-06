@@ -27,8 +27,9 @@ CHECK_ROOT() {
 GET_DISTRIBUTION() {
     if [[ -f "/etc/os-release" ]]; then
         source /etc/os-release
-        DISTR_ID="$ID"
+        DISTRIBUTION_ID="$ID"
         DISTR_CODENAME="$VERSION_CODENAME"
+
         return 0
     else
         echo -e "\nERROR: error when obtaining the machine's distro id\n" && exit 1
