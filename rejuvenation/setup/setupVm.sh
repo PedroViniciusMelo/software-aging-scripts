@@ -73,7 +73,7 @@ DISKS_MANAGMENT() {
   $remove_disks
 
   # define a desired quantity and size of disks to perform the tests
-  local DISKS_QUANTITY=5
+  local DISKS_QUANTITY=50
   local DISKS_SIZE=10
 
   if ! $create_disks $DISKS_QUANTITY $DISKS_SIZE; then
