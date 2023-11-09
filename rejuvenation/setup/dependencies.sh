@@ -40,20 +40,6 @@ GET_DISTRIBUTION() {
 # DESCRIPTION:
 #   install linux-headers, linux-image, gnupg, wget, curl, sysstat, openssh-server and systemtap
 INSTALLING_PACKAGES() {
-    # if ! apt install linux-headers-"$KERNEL_VERSION" linux-image-"$KERNEL_VERSION"-dbg -y; then
-    #     echo -e "\nERROR: Error installing Linux packages\n" >&2
-    #     exit 1
-    # else
-    #     echo -e "\nInstalled linux packages\n"
-    # fi
-
-    # if ! apt install gnupg wget curl sysstat systemtap openssh-server -y; then
-    #     echo -e "\nERROR: Error installing general packages\n" >&2
-    #     exit 1
-    # else
-    #     echo -e "\nInstalled general packages\n"
-    # fi
-
     apt update
 
     apt install linux-headers-"$KERNEL_VERSION" linux-image-"$KERNEL_VERSION"-dbg gnupg wget curl sysstat systemtap openssh-server -y || {
@@ -129,24 +115,24 @@ START_DEPENDENCIES() {
     GET_DISTRIBUTION # get id and version codename of machine dist
 
     case $DISTRIBUTION_ID in
-        "debian")
-            clear
+    "debian")
+        clear
 
-            INSTALLING_PACKAGES && wait          # installing util packages and linux packages
-            CHECKING_STAP_AVAILABLE && wait      # checking if stap available
-            CONFIGURE_SYSTEMTAP_BINARIES && wait # config depuration of systemtap
-            DOWNLOADING_VIRTUALBOX               # download virtualbox
+        INSTALLING_PACKAGES && wait          # installing util packages and linux packages
+        CHECKING_STAP_AVAILABLE && wait      # checking if stap available
+        CONFIGURE_SYSTEMTAP_BINARIES && wait # config depuration of systemtap
+        DOWNLOADING_VIRTUALBOX               # download virtualbox
 
-            apt update
+        apt update
 
-            echo -e "\nInstallations Completed\n"
-            echo "saindo e finalizando..."
-            exit 0
-            ;;
+        echo -e "\nInstallations Completed\n"
+        echo "leaving and finishing..."
+        exit 0
+        ;;
 
-        *)
-            echo "ERROR: error identifying the distribution"
-            exit 1
-            ;;
+    *)
+        echo "ERROR: error identifying the distribution"
+        exit 1
+        ;;
     esac
 }

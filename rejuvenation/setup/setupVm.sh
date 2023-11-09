@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
 
 # GLOBAL VARIABLES
-HOST_IP=$(hostname -I | awk '{print $1}')
+HOST_IP=$( hostname -I )
+
+# UTILS
+#   ERROR HANDLE
+ERROR_HANDLING() {
+    local error=$1
+    local status=$2
+    [[ $status -eq 0 ]] || {
+        echo -e "\nERROR: $error\n"
+        exit 1
+    }
+
+}
+
+# ERRORS MESSAGES
+readonly poweroff="error when turning off the virtual machine, it may already be turned off!"
+readonly unregister="unregistering and deleting files from vmDebian"
+readonly import="Importing vmDebian.ova"
+readonly modify="modifying vmDebian ports and network"
 
 # CHECK_DEBIAN_IMAGE
 # DESCRIPTION:
@@ -29,31 +47,19 @@ CHECK_DEBIAN_IMAGE() {
 #   VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$HOST_IP,8080,,80"
 #       Attempts to modify the virtual machine to forward traffic from host port 8080 to virtual machine port 80
 CONTROL_VIRTUAL_MACHINE() {
-  if ! vboxmanage controlvm vmDebian poweroff; then
-    echo -e "ERROR: error when trying to shut down the vm\n"
-  else
-    echo -e "SUCCESS: the virtual machine was shutdown\n"
-  fi
+  vboxmanage controlvm vmDebian poweroff
+  ERROR_HANDLING "$poweroff" 0
 
-  if ! VBoxManage unregistervm vmDebian --delete; then
-    echo -e "ERROR: error when trying to unregister the vm\n"
-  else
-    echo -e "WARNING: the vm was unregistered and its files were deleted\n"
-  fi
+  VBoxManage unregistervm vmDebian --delete
+  ERROR_HANDLING "$unregister" $?
 
   cd ../..
 
-  if ! vboxmanage import vmDebian.ova; then
-    echo -e "ERROR: error when trying to import vmDebian.ova\n"
-  else
-    echo -e "SUCCESS: The vm was imported successfully\n"
-  fi
+  vboxmanage import vmDebian.ova
+  ERROR_HANDLING "$import" $?
 
-  if ! VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$HOST_IP,8080,,80"; then
-    echo -e "ERROR: error when trying to modify vmDebian\n"
-  else
-    echo -e "WARNING: network modifications were made to the virtual machine\n"
-  fi
+  VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$HOST_IP,8080,,80"
+  ERROR_HANDLING "$modify" $?
 
   cd rejuvenation/setup
 }
