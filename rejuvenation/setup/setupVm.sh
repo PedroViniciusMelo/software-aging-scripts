@@ -2,17 +2,18 @@
 
 # GLOBAL VARIABLES
 HOST_IP=$( hostname -I )
+readonly HOST_IP
 
 # UTILS
 #   ERROR HANDLE
 ERROR_HANDLING() {
     local error=$1
     local status=$2
+
     [[ $status -eq 0 ]] || {
         echo -e "\nERROR: $error\n"
         exit 1
     }
-
 }
 
 # ERRORS MESSAGES
@@ -79,19 +80,20 @@ DISKS_MANAGMENT() {
   $remove_disks
 
   # define a desired quantity and size of disks to perform the tests
-  local DISKS_QUANTITY=50
-  local DISKS_SIZE=10
+  local disks_quantity=50
+  local disks_size=1024
 
-  if ! $create_disks $DISKS_QUANTITY $DISKS_SIZE; then
+  if ! $create_disks $disks_quantity $disks_size; then
     echo -e "ERROR: error creating disk\n"
   else
-    echo -e "SUCCESS: success in creating disks of quantity $DISKS_QUANTITY and size $DISKS_SIZE\n"
+    echo -e "SUCCESS: success in creating disks of quantity $disks_quantity and size $disks_size\n"
   fi
 }
 
 # START_VIRTUAL_MACHINE_IN_BACKGROUND
 # DESCRIPTION:
-#   
+#   vboxmanage startvm vmDebian --type headless
+#       start vm in headless
 START_VIRTUAL_MACHINE_IN_BACKGROUND() {
   read -r -p "Do you want to connect the vm? ( y | n ) - Default=n: \n" choice
 
@@ -106,7 +108,12 @@ START_VIRTUAL_MACHINE_IN_BACKGROUND() {
 
 # COPY_SSH_ID_AND_TEST_VIRTUAL_MACHINE_SERVER
 # DESCRIPTION:
-#   ALALAL
+#   ssh-copy-id:
+#       have an ssh key already created, then it will be copied with ssh-copy 
+#       and a port will be added and in the end your current shell will be connected to the virtual machine
+#
+#   curl:
+#       check whether the request to the server was successful
 COPY_SSH_ID_AND_TEST_VIRTUAL_MACHINE_SERVER() {
   if ! ssh-copy-id -i /root/.ssh/id_rsa.pub -p 2222 root@localhost; then
     echo -e "ERROR: error when trying to connect to vmDebian via ssh\n"

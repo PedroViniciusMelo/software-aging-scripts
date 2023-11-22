@@ -17,26 +17,26 @@ CHECK_ROOT() {
 
 # MAIN_SETUP
 # DESCRIPTION:
-#   start
+#   start setuo
 MAIN_SETUP() {
     CHECK_ROOT
 
-    read -r -p "Do you want to check dependencies? ( y | n ) - Default=n: " choise
+    read -r -p "Do you want to check dependencies? ( y | n ) - Default=n: " choice
 
-    if [[ "$choise" == "y" ]]; then
+    if [[ "$choice" == "y" ]]; then
         echo "checking dependencies"
 
-        START_DEPENDENCIES && wait # ./dependencies.sh
+        START_DEPENDENCIES # ./dependencies.sh
     else
         echo "will not check dependencies"
 
         ################################## START ./setupVm.sh
-        CHECK_DEBIAN_IMAGE && wait
-        CONTROL_VIRTUAL_MACHINE && wait
+        CHECK_DEBIAN_IMAGE
+        CONTROL_VIRTUAL_MACHINE
 
-        DISKS_MANAGMENT CREATE_DISKS REMOVING_DISKS && wait
+        DISKS_MANAGMENT CREATE_DISKS REMOVING_DISKS
 
-        START_VIRTUAL_MACHINE_IN_BACKGROUND && wait
+        START_VIRTUAL_MACHINE_IN_BACKGROUND
         COPY_SSH_ID_AND_TEST_VIRTUAL_MACHINE_SERVER
         ################################## END ./setupVm.sh
     fi

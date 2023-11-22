@@ -1,33 +1,29 @@
 #!/usr/bin/env bash
 
-# Universidade Federal Rural de Pernambuco - Unidade Acadêmica de Garanhuns
-# Uname Research Group
-# Author - Thayson Guedes ( 31/10/2023 )
-
-# GLOBAL VARIABLES
-COUNT=1                                                                           # counter control
-UUIDS_DISKS=$(vboxmanage list hdds | awk '/UUID:/ && !/Parent UUID:/ {print $2}') # get 'UUID' with 'id' and remove 'Parent UUID'
-
 # CREATE_DISKS
 # DESCRIPTION:
 #   create a new disks on virtual machine
 #
-# PARAMETERS:
-#   $1 = $DISKS_QUANTITY
-#   $2 = $DISK_SIZE
+# LOCAL VARIABLES:
+#   $counter
 #
-# GLOBAL VARIABLES:
-#   $COUNT
+# PARAMETERS:
+#   $1 = $disk_quantity
+#   $2 = $disk_size
+#
+# VBOX COMMANDS:
+#   VBoxManage createmedium disk
 CREATE_DISKS() {
-    DISKS_QUANTITY=$1 # number of disks to be created
-    DISK_SIZE=$2      # disk size after created
+    local counter=1
+
+    local disk_quantity=$1 # number of disks to be created
+    local disk_size=$2      # disk size after created
 
     mkdir -p ../disks
 
-    while [[ "$COUNT" -le "$DISKS_QUANTITY" ]]; do
-        VBoxManage createmedium disk --filename ../disks/disk$COUNT.vhd --size "$DISK_SIZE" --format VHD --variant Fixed
-
-        ((COUNT++))
+    while [[ "$counter" -le "$disk_quantity" ]]; do
+        VBoxManage createmedium disk --filename ../disks/disk$counter.vhd --size "$disk_size" --format VHD --variant Fixed
+        ((counter++))
     done
 }
 
@@ -35,13 +31,17 @@ CREATE_DISKS() {
 # DESCRIPTION:
 #   deletes virtual hard disks from the virtual machine except disks in use
 #
-# GLOBAL VARIABLES:
-#   $UUIDS_DISKS
+# LOCAL VARIABLES:
+#   $uuids_disks
 #
-# virtualbox commands used:
+# VBOX COMMANDS:
+#   vboxmanage list hdds
 #   vboxmanage closemedium disk
 REMOVING_DISKS() {
-    for uuid_disk in $UUIDS_DISKS; do
+    local uuids_disks
+    uuids_disks=$(vboxmanage list hdds | awk '/UUID:/ && !/Parent UUID:/ {print $2}') # get 'UUID' with 'id' and remove 'Parent UUID'
+
+    for uuid_disk in $uuids_disks; do
         echo -e "\n--->> Deleting disk with id: $uuid_disk \n"
         deleting_disk="$(vboxmanage closemedium disk "$uuid_disk" --delete 2>&1)"
 

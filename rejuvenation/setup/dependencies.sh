@@ -3,8 +3,12 @@
 # GLOBAL_VARIABLES
 # DESCRIPTION:
 #   start globall tools
+#
+# READONLY VARIABLES:
+#   KERNEL_VERSION
 GLOBAL_VARIABLES() {
     KERNEL_VERSION=$(uname -r)
+    readonly KERNEL_VERSION
 }
 
 # CHECK_ROOT
@@ -19,20 +23,15 @@ CHECK_ROOT() {
 
 # GET_DISTRIBUTION
 # DESCRIPTION:
-#   verify linux distribution and get id of distribution
-#
-# GLOBAL_VARS_CONFIG:
-#   $DISTR_ID
-#   $DISTR_CODENAME
+#   verify linux distribution and get id of distribution with version codename
 GET_DISTRIBUTION() {
     if [[ -f "/etc/os-release" ]]; then
         source /etc/os-release
-        DISTRIBUTION_ID="$ID"
-        DISTR_CODENAME="$VERSION_CODENAME"
-
+        distribution_id="$ID"
+        distr_codename="$VERSION_CODENAME"
         return 0
     else
-        echo -e "\nERROR: error when obtaining the machine's distro id\n" && exit 1
+        echo -e "\nERROR: error getting machine information\n" && exit 1
     fi
 }
 
@@ -92,7 +91,7 @@ DOWNLOADING_VIRTUALBOX() {
     mkdir -p /etc/apt/backup
     cp /etc/apt/sources.list /etc/apt/backup/
 
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $DISTR_CODENAME contrib" >>/etc/apt/sources.list
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $distr_codename contrib" >>/etc/apt/sources.list
 
     wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
 
@@ -107,21 +106,21 @@ DOWNLOADING_VIRTUALBOX() {
 
 # START_DEPENDENCIES
 # DESCRIPTION:
-#   starts dependency checking
+#   starts dependency checking and install dependencies requirements
 START_DEPENDENCIES() {
     CHECK_ROOT
 
     GLOBAL_VARIABLES # get global variables
     GET_DISTRIBUTION # get id and version codename of machine dist
 
-    case $DISTRIBUTION_ID in
+    case $distribution_id in
     "debian")
-        clear
+        reset
 
-        INSTALLING_PACKAGES && wait          # installing util packages and linux packages
-        CHECKING_STAP_AVAILABLE && wait      # checking if stap available
-        CONFIGURE_SYSTEMTAP_BINARIES && wait # config depuration of systemtap
-        DOWNLOADING_VIRTUALBOX               # download virtualbox
+        INSTALLING_PACKAGES          # installing util packages and linux packages
+        CHECKING_STAP_AVAILABLE      # checking if stap available
+        CONFIGURE_SYSTEMTAP_BINARIES # config depuration of systemtap
+        DOWNLOADING_VIRTUALBOX       # download virtualbox
 
         apt update
 
