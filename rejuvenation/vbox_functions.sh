@@ -8,16 +8,20 @@ readonly VM_NAME="vmDebian"
 
 # FUNCTION=TURN_VM_OFF()
 # DESCRIPTION:
-#   VBoxManage controlvm vmDebian poweroff:
-#     Tries to turn off the virtual machine
+#   Tries to turn off the virtual machine
+#
+# VBOX COMMANDS:
+#    VBoxManage controlvm vmDebian poweroff
 TURN_VM_OFF() {
   vboxmanage controlvm "$VM_NAME" poweroff
 }
 
 # FUNCTION=DELETE_VM()
 # DESCRIPTION:
-#   VBoxManage unregistervm vmDebian --delete:
-#     Unregisters the virtual machine and delete all files associated with it
+#   Unregisters the virtual machine and delete all files associated with it
+#
+# VBOX COMMANDS:
+#   VBoxManage unregistervm vmDebian --delete
 DELETE_VM() {
   vboxmanage unregistervm "$VM_NAME" --delete
 }
@@ -25,7 +29,8 @@ DELETE_VM() {
 # FUNCTION=GRACEFUL_REBOOT()
 # DESCRIPTION:
 #   Initiates a graceful reboot using ACPI power button. It has the same effect of pressing the power button on a physical pc.
-# VIRTUAL BOX COMMANDS:
+#
+# VBOX COMMANDS:
 #   VBoxManage controlvm "$VM_NAME" acpipowerbutton
 GRACEFUL_REBOOT() {
   vboxmanage controlvm "$VM_NAME" acpipowerbutton
@@ -34,7 +39,8 @@ GRACEFUL_REBOOT() {
 # FUNCTION=FORCED_REBOOT()
 # DESCRIPTION:
 #   Initiates a forced reboot.
-# VIRTUAL BOX COMMANDS:
+#
+# VBOX COMMANDS:
 #   VBoxManage controlvm "$VM_NAME" reset
 FORCED_REBOOT() {
   vboxmanage controlvm "$VM_NAME" reset
@@ -42,10 +48,12 @@ FORCED_REBOOT() {
 
 # FUNCTION=CREATE_VM()
 # DESCRIPTION:
+#   Imports the virtual machine vmDebian.ova
+#   Attempts to modify the virtual machine to forward traffic from host port 8080 to virtual machine port 80
+#
+# VBOX COMMANDS:
 #   VBoxManage import vmDebian.ova
-#      Imports the virtual machine vmDebian.ova
 #   VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$host_ip,8080,,80"
-#      Attempts to modify the virtual machine to forward traffic from host port 8080 to virtual machine port 80
 CREATE_VM() {
   local host_ip
   host_ip=$(hostname -I | awk '{print $1}')
