@@ -2,16 +2,25 @@
 
 # Lista de URLs para download
 urls=(
-    "https://www.dropbox.com/scl/fi/yp9srzqmsgc7q622x10zm/debian500mb.tar?rlkey=d3bqf686tnftmjz30sns6m040&dl=0"
-    #"https://www.dropbox.com/scl/fi/vxussfztlejesx2crd5hw/debian1gb.tar?rlkey=rwpd3s24bled5yi5vq4j5nts0&dl=0"
-    #"https://www.dropbox.com/scl/fi/zy6cq9v7aa1be3cy2emax/debian2gb.tar?rlkey=79yda95be7rilu7mcdd12i6iv&dl=0"
-    #"https://www.dropbox.com/scl/fi/jd90jxx22qe2ukt9l9r4v/debian3gb.tar?rlkey=b5gkwb4k3l1z8bm18fsgi18ym&dl=0"
-    #"https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
-    # Adicione mais URLs conforme necessário
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
+    "https://www.dropbox.com/scl/fi/4kl5hxy6ftiwbcqly8ca0/debian4gb.tar?rlkey=2klw6giva484pdzc5o2kiqsfq&dl=0"
 )
+
+count=1
 
 # Loop para baixar cada arquivo
 for url in "${urls[@]}"; do
-    wget "$url" > /dev/null
+    echo $count > file_count
+    wget -O arquivo.tar "$url" > /dev/null
+    rm -rf arquivo.tar
+    count=$((count+1))
 done
 

@@ -1,5 +1,5 @@
-echo "bytes_received;packet_received;errors_received;missed_received;date_time" > log-download.csv
-echo "bytes_sent;packet_sent;errors_sent;missed_sent;date_time" > log-upload.csv
+echo "bytes_received;packet_received;errors_received;missed_received;date_time;file" > log-download.csv
+echo "bytes_sent;packet_sent;errors_sent;missed_sent;date_time;file" > log-upload.csv
 
 ./download-multiple-files &
 
@@ -38,16 +38,6 @@ while ps -p "$ultimo_pid" > /dev/null; do
   errors_received_2=$(echo "$rede2" | awk '{print $4}') # erros de recepção na segunda amostra
   missed_received_2=$(echo "$rede2" | awk '{print $5}') # pacotes perdidos na recepção na segunda amostra
 
-  echo "bytes_sent_1: $bytes_sent_1"
-  echo "packet_sent_1: $packet_sent_1"
-  echo "errors_sent_1: $errors_sent_1"
-  echo "missed_sent_1: $missed_sent_1"
-
-  echo "bytes_received_1: $bytes_received_1"
-  echo "packet_received_1: $packet_received_1"
-  echo "errors_received_1: $errors_received_1"
-  echo "missed_received_1: $missed_received_1"
-
   # Calcular as diferenças entre a primeira e a segunda amostra
   diff_bytes_sent=$((bytes_sent_2 - bytes_sent_1))
   diff_packet_sent=$((packet_sent_2 - packet_sent_1))
@@ -59,7 +49,9 @@ while ps -p "$ultimo_pid" > /dev/null; do
   diff_errors_received=$((errors_received_2 - errors_received_1))
   diff_missed_received=$((missed_received_2 - missed_received_1))
 
+  file_count=$(cat file_count)
+
   # Salvar os valores no arquivo CSV
-  echo "$diff_bytes_sent;$diff_packet_sent;$diff_errors_sent;$diff_missed_sent;$date_time" >> log-download.csv
-  echo "$diff_bytes_received;$diff_packet_received;$diff_errors_received;$diff_missed_received;$date_time" >> log-upload.csv
+  echo "$diff_bytes_sent;$diff_packet_sent;$diff_errors_sent;$diff_missed_sent;$date_time;$file_count" >> log-upload.csv
+  echo "$diff_bytes_received;$diff_packet_received;$diff_errors_received;$diff_missed_received;$date_time;$file_count" >> log-download.csv
 done
