@@ -84,23 +84,39 @@ CONFIGURE_SYSTEMTAP_BINARIES() {
     fi
 }
 
+# Function to check if the VirtualBox repository is already present in sources.list
+CHECKING_VIRTUALBOX() {
+    if grep -q "download.virtualbox.org" /etc/apt/sources.list; then
+        echo "The VirtualBox repository is already configured."
+        return 0 # Returns 0 indicating the repository is already present
+    else
+        echo "Adding the VirtualBox repository..."
+        return 1 # Returns 1 indicating the repository needs to be added
+    fi
+}
+
 # DOWNLOADING_VIRTUALBOX
 # DESCRIPTION:
 #   backup of sourcers.list, configure and add repository, assiganture keys and download of virtualbox-7.0
 DOWNLOADING_VIRTUALBOX() {
-    mkdir -p /etc/apt/backup
-    cp /etc/apt/sources.list /etc/apt/backup/
-
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $distr_codename contrib" >>/etc/apt/sources.list
-
-    wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
-
-    apt update
-    if ! apt install virtualbox-7.0 -y; then
-        echo -e "\nVirtualBox installed successfully\n"
+    # Checking if the repository is already configured
+    if CHECKING_VIRTUALBOX; then
+        echo "Skipping repository addition as it's already configured."
     else
-        echo -e "\nERROR: Error when trying to install virtualbox\n" >&2
-        exit 1
+        mkdir -p /etc/apt/backup
+        cp /etc/apt/sources.list /etc/apt/backup/
+
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian $distr_codename contrib" >>/etc/apt/sources.list
+
+        wget -O- https://www.virtualbox.org/download/oracle_vbox_2016.asc | gpg --dearmor --yes --output /usr/share/keyrings/oracle-virtualbox-2016.gpg
+
+        apt update
+        if ! apt install virtualbox-7.0 -y; then
+            echo -e "\nVirtualBox installed successfully\n"
+        else
+            echo -e "\nERROR: Error when trying to install virtualbox\n" >&2
+            exit 1
+        fi
     fi
 }
 

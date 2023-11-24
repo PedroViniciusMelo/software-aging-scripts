@@ -4,7 +4,7 @@
 # Uname Research Group
 
 # GLOBAL VARIABLES:
-readonly VM_NAME="vmDebian"
+VM_NAME="vmDebian"
 
 # FUNCTION=TURN_VM_OFF()
 # DESCRIPTION:
@@ -56,34 +56,10 @@ FORCED_REBOOT() {
 #   VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$host_ip,8080,,80"
 CREATE_VM() {
   local host_ip
-  host_ip=$(hostname -I | awk '{print $1}')
-  cd .. #(adjust as needed based on the final file organization)
+  host_ip=$( hostname -I )
+
   vboxmanage import vmDebian.ova
   vboxmanage modifyvm vmDebian --natpf1 "porta 8080,tcp,$host_ip,8080,,80"
-}
-
-# FUNCTION=REMOVE_DISKS()
-# DESCRIPTION:
-#   Attempts to remove all disks from virtual machine
-#
-# VBOX COMMANDS:
-#   VBoxManage list hdds
-#   VBoxManage closemedium disk
-REMOVE_DISKS() {
-  local uuids_disks
-  uuids_disks=$(VBoxManage list hdds | awk '/UUID:/ && !/Parent UUID:/ {print $2}') # get 'UUID' with 'id' and remove 'Parent UUID'
-
-  for uuid_disk in $uuids_disks; do
-    echo -e "\n--->> Deleting disk with id: $uuid_disk \n"
-    deleting_disk="$(VBoxManage closemedium disk "$uuid_disk" --delete 2>&1)"
-
-    if [[ "$deleting_disk" == *"error:"* ]]; then
-      echo -e "Error: Failed to delete medium with UUID: $uuid_disk \n"
-      echo -e "***\nDetails: \n$deleting_disk \n***"
-    else
-      echo "Medium with UUID = $uuid_disk (deleted successfully)"
-    fi
-  done
 }
 
 # FUNCTION=CREATE_DISKS()
@@ -115,6 +91,30 @@ CREATE_DISKS() {
   while [[ "$count" -le "$disks_quantity" ]]; do
     VBoxManage createmedium disk --filename ../disks/disk$count.vhd --size "$disk_size" --format VHD --variant Fixed
     ((count++))
+  done
+}
+
+# FUNCTION=REMOVE_DISKS()
+# DESCRIPTION:
+#   Attempts to remove all disks from virtual machine
+#
+# VBOX COMMANDS:
+#   VBoxManage list hdds
+#   VBoxManage closemedium disk
+REMOVE_DISKS() {
+  local uuids_disks
+  uuids_disks=$(VBoxManage list hdds | awk '/UUID:/ && !/Parent UUID:/ {print $2}') # get 'UUID' with 'id' and remove 'Parent UUID'
+
+  for uuid_disk in $uuids_disks; do
+    echo -e "\n--->> Deleting disk with id: $uuid_disk \n"
+    deleting_disk="$(VBoxManage closemedium disk "$uuid_disk" --delete 2>&1)"
+
+    if [[ "$deleting_disk" == *"error:"* ]]; then
+      echo -e "Error: Failed to delete medium with UUID: $uuid_disk \n"
+      echo -e "***\nDetails: \n$deleting_disk \n***"
+    else
+      echo "Medium with UUID = $uuid_disk (deleted successfully)"
+    fi
   done
 }
 

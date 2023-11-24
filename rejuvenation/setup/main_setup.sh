@@ -3,7 +3,7 @@
 ################################################# START IMPORTS
 source ./dependencies.sh
 source ./setupVm.sh
-source ./disk_management.sh
+source ../vbox_functions.sh
 
 # CHECK_ROOT
 # DESCRIPTION:
@@ -34,7 +34,7 @@ MAIN_SETUP() {
         CHECK_DEBIAN_IMAGE
         CONTROL_VIRTUAL_MACHINE
 
-        DISKS_MANAGMENT CREATE_DISKS REMOVING_DISKS
+        DISKS_MANAGMENT CREATE_DISKS REMOVE_DISKS
 
         START_VIRTUAL_MACHINE_IN_BACKGROUND
         COPY_SSH_ID_AND_TEST_VIRTUAL_MACHINE_SERVER

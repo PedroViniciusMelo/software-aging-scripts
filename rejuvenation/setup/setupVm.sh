@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# GLOBAL VARIABLES
-HOST_IP=$( hostname -I )
-readonly HOST_IP
+############################ IMPORTS
+source ../vbox_functions.sh
 
 # UTILS
 #   ERROR HANDLE
@@ -19,8 +18,7 @@ ERROR_HANDLING() {
 # ERRORS MESSAGES
 readonly poweroff="error when turning off the virtual machine, it may already be turned off!"
 readonly unregister="unregistering and deleting files from vmDebian"
-readonly import="Importing vmDebian.ova"
-readonly modify="modifying vmDebian ports and network"
+readonly import_modify="Importing vmDebian.ova and modifying vmDebian ports and network"
 
 # CHECK_DEBIAN_IMAGE
 # DESCRIPTION:
@@ -36,33 +34,26 @@ CHECK_DEBIAN_IMAGE() {
 
 # CONTROL_VIRTUAL_MACHINE
 # DESCRIPTION:
-#   vboxmanage controlvm vmDebian poweroff:
-#       try to turn off the virtual machine
-# 
-#   VBoxManage unregistervm vmDebian --delete:
-#       Attempts to unregister the virtual machine and delete all files associated with it
-# 
-#   vboxmanage import vmDebian.ova
-#       import the virtual machine vmDebian.ova
-# 
-#   VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$HOST_IP,8080,,80"
-#       Attempts to modify the virtual machine to forward traffic from host port 8080 to virtual machine port 80
+#   TURN_VM_OFF:
+#     try to turn off the virtual machine
+#   
+#   DELETE_VM:
+#     Attempts to unregister the virtual machine and delete all files associated with it
+#
+#   CREATE_VM:
+#     import the virtual machine vmDebian.ova
+#     Attempts to modify the virtual machine to forward traffic from host port 8080 to virtual machine port 80
 CONTROL_VIRTUAL_MACHINE() {
-  vboxmanage controlvm vmDebian poweroff
+  cd ..
+  TURN_VM_OFF
   ERROR_HANDLING "$poweroff" 0
 
-  VBoxManage unregistervm vmDebian --delete
-  ERROR_HANDLING "$unregister" $?
+  DELETE_VM
+  ERROR_HANDLING "$unregister" 0
 
-  cd ../..
-
-  vboxmanage import vmDebian.ova
-  ERROR_HANDLING "$import" $?
-
-  VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$HOST_IP,8080,,80"
-  ERROR_HANDLING "$modify" $?
-
-  cd rejuvenation/setup
+  CREATE_VM
+  ERROR_HANDLING "$import_modify" 0
+  cd setup || exit
 }
 
 # DISKS_MANAGMENT
@@ -71,8 +62,12 @@ CONTROL_VIRTUAL_MACHINE() {
 #     creates disks in the virtual machine from the given quantity and size
 # 
 # PARAMETERS:
-#   $1 == create disks
-#   $2 == remove disks
+#     $1 == create disks
+#     $2 == remove disks
+#
+# DISC RECOMMENDATIONS:
+#     disks_quantity=50
+#     disks_size=1024
 DISKS_MANAGMENT() {
   local create_disks=$1
   local remove_disks=$2
@@ -81,7 +76,7 @@ DISKS_MANAGMENT() {
 
   # define a desired quantity and size of disks to perform the tests
   local disks_quantity=50
-  local disks_size=1024
+  local disks_size=10
 
   if ! $create_disks $disks_quantity $disks_size; then
     echo -e "ERROR: error creating disk\n"
@@ -92,17 +87,13 @@ DISKS_MANAGMENT() {
 
 # START_VIRTUAL_MACHINE_IN_BACKGROUND
 # DESCRIPTION:
-#   vboxmanage startvm vmDebian --type headless
-#       start vm in headless
+#     START_VM:
+#         start vm in headless
 START_VIRTUAL_MACHINE_IN_BACKGROUND() {
   read -r -p "Do you want to connect the vm? ( y | n ) - Default=n: \n" choice
 
   if [[ "$choice" == "y" ]]; then
-    if ! vboxmanage startvm vmDebian --type headless; then
-      echo -e "ERROR: error when trying to start vmDebian in the background\n"
-    fi
-  else
-    echo -e "WARNING: the vm will not be turned on\n"
+    START_VM
   fi
 }
 
