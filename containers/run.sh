@@ -54,6 +54,7 @@ count=0
 
 while [[ $count -lt $max_runs ]]; do
   progress $count "$max_runs"
+  echo "$count" > current_interation.txt
   if [ "$remove_image" -eq 1 ]; then
     download_time=$(get_command_time download_command)
   else
