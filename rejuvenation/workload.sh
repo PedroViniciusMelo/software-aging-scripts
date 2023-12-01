@@ -1,27 +1,25 @@
 #!/bin/bash
-#!/bin/bash
-# UFAPE
-# Uname Research Group
-# Felipe Oliveira 25/10/2018
-# Pedro Vinícius 11/03/2022
+source ./vbox_functions.sh
 
 # PARAMETERS
-# $1= virtual machine name
-# $2= path of the disks
-# $3= quantidade de discos
-#usage ./workload.sh vmDebian disks/ 50
+# $1= disks path
+# $2= quantity of disks
+# USAGE 
+# ./workload.sh /disks/disk 50
 
 wait_time_after_attach=10
 wait_time_after_detach=10
 count_disks=1
 
 while true; do
-  vboxmanage storageattach "$1" --storagectl "SATA" --device 0 --port 1 --type hdd --medium "$2$count_disks.vhd"
+  disk_path="$1$count_disks.vhd"
+
+  #Fazer um while para anexar múltiplos discos, mesma coisa para desanexar em sequência
+  ATTACH_DISK "$disk_path"
   sleep $wait_time_after_attach
 
-  vboxmanage storageattach "$1" --storagectl "SATA" --device 0 --port 1 --type hdd --medium none
+  DETACH_DISK
   sleep $wait_time_after_detach
-
 
   if [ "$count_disks" -lt "$3" ]; then
     ((count_disks++))

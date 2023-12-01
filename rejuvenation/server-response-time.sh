@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 # usage ./remoteServiceResponse.sh 192.168.0.109 8080 6
 # Define a ADDRESS do servidor
 ADDRESS=$1

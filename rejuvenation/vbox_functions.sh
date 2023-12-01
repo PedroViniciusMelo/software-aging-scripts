@@ -34,6 +34,10 @@ DELETE_VM() {
 #   VBoxManage controlvm "$VM_NAME" acpipowerbutton
 GRACEFUL_REBOOT() {
   vboxmanage controlvm "$VM_NAME" acpipowerbutton
+  until vboxmanage startvm "$VM_NAME" --type headless; do
+    sleep 1
+    echo "Waiting for machine to shutdown"
+  done
 }
 
 # FUNCTION=FORCED_REBOOT()
@@ -46,6 +50,10 @@ FORCED_REBOOT() {
   vboxmanage controlvm "$VM_NAME" reset
 }
 
+SSH_REBOOT() {
+  ssh -p 2222 root@localhost "/sbin/shutdown -r now"
+}
+
 # FUNCTION=CREATE_VM()
 # DESCRIPTION:
 #   Imports the virtual machine vmDebian.ova
@@ -56,7 +64,7 @@ FORCED_REBOOT() {
 #   VBoxManage modifyvm vmDebian --natpf1 "porta 8080,tcp,$host_ip,8080,,80"
 CREATE_VM() {
   local host_ip
-  host_ip=$( hostname -I )
+  host_ip=$(hostname -I)
 
   vboxmanage import vmDebian.ova
   vboxmanage modifyvm vmDebian --natpf1 "porta 8080,tcp,$host_ip,8080,,80"
