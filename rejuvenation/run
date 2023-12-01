@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ./vbox_functions.sh
+
 #Time method
 start_date=$(date +%s)
 reboot_date=0
@@ -13,9 +15,6 @@ server_down_start=0
 force=0
 soft=0
 ssh=0
-
-#vm name
-vm_name="vmDebian"
 
 #checks if date A is greater than date B
 function is_date_greater() {
@@ -40,27 +39,9 @@ function print_usage() {
   echo "script usage $(basename "$0")  [-t <integer> minutes] [-m <integer> mb] [-p (TODO)] [-f (forced reboot)] [-s (soft reboot)] [-ssh (ssh reboot)]" >&1
 }
 
-function reboot_machine() {
-  ((reboot_count++))
-  server_down_start=$(date +%s)
-
-
-  ./reboot_machine.sh $force $soft $ssh $vm_name
-
-  sleep 2
-}
-
-function time_method() {
-  result=$(is_date_greater $reboot_date)
-  if [ "$result" -eq 1 ]; then
-    reboot_date=$(date -d "($reboot_date) +$minutes mins" +%s)
-    reboot_machine
-  fi
-}
-
 if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
- print_usage
- exit 0
+  print_usage
+  exit 0
 else
   while [[ $# -gt 0 ]]; do
     opt="$1"
@@ -106,24 +87,7 @@ else
   done
 fi
 
-#if [[ "$APPLE" == "" || "$BANANA" == "" ]]; then
-#    echo "ERROR: Options -a and -b require arguments." >&2
-#    exit 1
-#fi
-
-function headers() {
-  mkdir -p logs
-  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxSVC.csv
-  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxHeadless.csv
-  echo "cpu;mem;vmrss;vsz;threads;swap;date_time" >logs/monitoramento-VBoxXPCOMIPCD.csv
-  echo "usr;nice;sys;iowait;soft;date_time" >logs/monitoramento-cpu.csv
-  echo "used;date_time" >logs/monitoramento-disco.csv
-  echo "used;cached;buffer;swap-free;date_time" >logs/monitoramento-mem.csv
-  echo "num_zumbis;date_time" >logs/monitoramento-zumbis.csv
-  echo "server_down; period; seconds" >logs/server_status.csv
-}
-
-function verify_server_status() {
+function VERIFY_SERVER_STATUS() {
   if [ "$server_down_start" -ne "0" ]; then
     code=$(curl -w "%{http_code}" -o /dev/null -s "http://localhost:8080")
     if [ "$code" -eq 200 ]; then
@@ -138,36 +102,36 @@ function verify_server_status() {
   fi
 }
 
+function REBOOT_VM() {
+  ((reboot_count++))
+  server_down_start=$(date +%s)
+  if [ "$soft" -eq 1 ]; then
+    GRACEFUL_REBOOT
+  fi
 
+  if [ "$ssh" -eq 1 ]; then
+    SSH_REBOOT
+  fi
 
-rebooted=$(vboxmanage list runningvms | grep "$vm_name")
-if [[ "$rebooted" == "" ]]; then
-  vboxmanage startvm "$vm_name" --type headless
-  echo "Turned on machine"
-else
-  echo "Machine is already on"
-fi
+  if [ "$force" -eq 1 ]; then
+    FORCED_REBOOT
+  fi
+}
 
-headers
+START_VM
 
-./workload.sh "$vm_name" disks/disk 50 &
-
-stap -o logs/fragmentacao.txt memory_fragmentation/fragmentacao2b.stp &
-
-processos/monitoramento-VBoxXPCOMIPCD.sh &
-processos/monitoramento-VBoxHeadless.sh &
-processos/monitoramento-VBoxSVC.sh &
-
-./machine-resources.sh &
+./workload.sh disks/disk 50 &
+./machine_resources_monitoring/run &
 
 while true; do
   :
-
   date_time=$(date +%d-%m-%Y-%H:%M:%S)
+  result=$(is_date_greater $reboot_date)
+  if [ "$result" -eq 1 ]; then
+    REBOOT_VM
+  fi
 
-  time_method
-
-  verify_server_status
+  VERIFY_SERVER_STATUS
 
   sleep 1
 done

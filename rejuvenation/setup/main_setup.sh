@@ -9,7 +9,7 @@ source ../vbox_functions.sh
 # DESCRIPTION:
 #   check if script is running as root
 CHECK_ROOT() {
-    if [[ "$EUID" -ne 0 ]]; then
+   if [[ "$EUID" -ne 0 ]]; then
         echo "Run Script as Super Administrator ( need root )"
         exit 1
     fi
@@ -17,7 +17,7 @@ CHECK_ROOT() {
 
 # MAIN_SETUP
 # DESCRIPTION:
-#   start setuo
+#   start setup
 MAIN_SETUP() {
     CHECK_ROOT
 
