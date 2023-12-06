@@ -7,39 +7,32 @@ source ./vbox_functions.sh
 # USAGE
 # ./workload.sh /disks/disk 50
 
-readonly wait_time_after_attach=10
-readonly wait_time_after_detach=10
-count_disks=1
+readonly wait_time_after_attach=2
+readonly wait_time_after_detach=2
 
-while true; do
-  disk_path="$1$count_disks.vhd"
+WORKLOAD() {
+  local count_disks=1
+  local disk_path="disks/disk"
 
-  for port in {1..3}; do
-    for _ in {1..3}; do
-      #Fazer um while para anexar múltiplos discos, mesma coisa para desanexar em sequência
-      ATTACH_DISK "$disk_path" "$port"
+  while true; do
+    for port in {1..3}; do
+      ATTACH_DISK "${disk_path}$count_disks.vhd" "$port"
       sleep $wait_time_after_attach
 
-      if [ "$count_disks" -lt "$3" ]; then
-        ((count_disks++))
-      else
-        count_disks=1
-      fi
-    done
-  done
+      [[ "$count_disks" -lt 50 ]] && ((count_disks++))
 
-  if "$count_disks" -eq 50; then
-    while i -ne 50; do
+    done
+
+    if [[ "$count_disks" -eq 50 ]]; then
       for port in {1..3}; do
-        for _ in {1..3}; do
-          DETACH_DISK "$port"
-          sleep $wait_time_after_detach
+        DETACH_DISK "$port"
+        sleep $wait_time_after_detach
 
-          ((i++))
-        done
       done
-    done
-    count_disks=1
-  fi
+      count_disks=1
+    fi
 
-done
+  done
+}
+
+WORKLOAD
