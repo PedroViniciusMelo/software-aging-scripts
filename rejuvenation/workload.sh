@@ -7,31 +7,31 @@ source ./vbox_functions.sh
 # USAGE
 # ./workload.sh /disks/disk 50
 
-readonly wait_time_after_attach=2
-readonly wait_time_after_detach=2
+readonly wait_time_after_attach=10
+readonly wait_time_after_detach=10
 
 WORKLOAD() {
   local count_disks=1
   local disk_path="disks/disk"
+  local max_disks=50
 
   while true; do
     for port in {1..3}; do
-      ATTACH_DISK "${disk_path}$count_disks.vhd" "$port"
+      ATTACH_DISK "${disk_path}${count_disks}.vhd" "$port"
+
+      if [[ "$count_disks" -eq "$max_disks" ]]; then
+        count_disks=1
+      else
+        ((count_disks++))
+      fi
       sleep $wait_time_after_attach
-
-      [[ "$count_disks" -lt 50 ]] && ((count_disks++))
-
     done
 
-    if [[ "$count_disks" -eq 50 ]]; then
-      for port in {1..3}; do
-        DETACH_DISK "$port"
-        sleep $wait_time_after_detach
+    for port in {1..3}; do
+      DETACH_DISK "$port"
+      sleep $wait_time_after_detach
 
-      done
-      count_disks=1
-    fi
-
+    done
   done
 }
 
