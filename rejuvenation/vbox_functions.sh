@@ -163,7 +163,8 @@ START_VM() {
 #       ATTACH_DISK software-aging/disks/disk1.vhd
 ATTACH_DISK() {
   local disk_path="$1"
-  VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --device 0 --port 1 --type hdd --medium "$disk_path"
+  local port="$2"
+  VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --device 0 --port "$port" --type hdd --medium "$disk_path"
 }
 
 # FUNCTION=DETACH_DISK()
@@ -176,5 +177,6 @@ ATTACH_DISK() {
 # VBOX COMMANDS:
 #   VBoxManage storageattach ... --medium none
 DETACH_DISK() {
-  VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --device 0 --port 1 --type hdd --medium none
+  local port="$1"
+  VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --device 0 --port "$port" --type hdd --medium none
 }
