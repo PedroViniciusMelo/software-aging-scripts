@@ -3,28 +3,15 @@
 source ./vbox_functions.sh
 
 #Time method
-start_date=$(date +%s)
-reboot_date=0
 minutes=0
 
 #Control variables
 reboot_count=0
-server_down_start=0
 
 #reboot types
 force=0
 soft=0
 ssh=0
-
-#checks if date A is greater than date B
-function is_date_greater() {
-  now=$(date +%s)
-  if [ "$now" -ge "$1" ]; then
-    echo 1
-  else
-    echo 0
-  fi
-}
 
 #checks if $1 is a number
 function is_number() {
@@ -36,7 +23,7 @@ function is_number() {
 }
 
 function print_usage() {
-  echo "script usage $(basename "$0")  [-t <integer> minutes] [-m <integer> mb] [-p (TODO)] [-f (forced reboot)] [-s (soft reboot)] [-ssh (ssh reboot)]" >&1
+  echo "script usage $(basename "$0")  [-t <integer> minutes] [-m <integer> mb] [-f (forced reboot)] [-s (soft reboot)] [-ssh (ssh reboot)]" >&1
 }
 
 if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
@@ -54,7 +41,6 @@ else
     case "$opt" in
     "-t" | "--time")
       minutes=$1
-      reboot_date=$(date -d "($start_date) +$1 mins" +%s)
       echo "Iniciando testes de rejuvenescimento | A MV irá reinciar a cada $minutes minutos"
       shift
       ;;
@@ -70,10 +56,6 @@ else
       ssh=1
       shift
       ;;
-    "-n" | "--name")
-      vm_name="$1"
-      shift
-      ;;
     "-h" | "--help")
       print_usage
       exit 0
@@ -87,24 +69,9 @@ else
   done
 fi
 
-function VERIFY_SERVER_STATUS() {
-  if [ "$server_down_start" -ne "0" ]; then
-    code=$(curl -w "%{http_code}" -o /dev/null -s "http://localhost:8080")
-    if [ "$code" -eq 200 ]; then
-      date_time=$(date +%d-%m-%Y-%H:%M:%S)
-      server_down_end=$(date +%s)
-      result="$((server_down_end - server_down_start))"
-      server_down_start=0
-
-      echo "$date_time; $reboot_count; $result" >>logs/server_status.csv
-      echo "Server is up again"
-    fi
-  fi
-}
-
 function REBOOT_VM() {
   ((reboot_count++))
-  server_down_start=$(date +%s)
+  echo "Rebooting VM - Reboot count: $reboot_count"
   if [ "$soft" -eq 1 ]; then
     GRACEFUL_REBOOT
   fi
@@ -120,18 +87,12 @@ function REBOOT_VM() {
 
 START_VM
 
-./workload.sh disks/disk 50 &
+./workload.sh &
 ./machine_resources_monitoring/run &
 
 while true; do
   :
-  date_time=$(date +%d-%m-%Y-%H:%M:%S)
-  result=$(is_date_greater $reboot_date)
-  if [ "$result" -eq 1 ]; then
-    REBOOT_VM
-  fi
+  sleep "$minutes"m
 
-  VERIFY_SERVER_STATUS
-
-  sleep 1
+  REBOOT_VM
 done
