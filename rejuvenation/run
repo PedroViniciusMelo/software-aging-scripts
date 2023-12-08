@@ -13,15 +13,6 @@ force=0
 soft=0
 ssh=0
 
-#checks if $1 is a number
-function is_number() {
-  local re='^[0-9]+$'
-  if ! [[ $1 =~ $re ]]; then
-    return 1
-  fi
-  return 0
-}
-
 function print_usage() {
   echo "script usage $(basename "$0")  [-t <integer> minutes] [-m <integer> mb] [-f (forced reboot)] [-s (soft reboot)] [-ssh (ssh reboot)]" >&1
 }
